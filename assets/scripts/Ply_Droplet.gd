@@ -3,15 +3,15 @@ extends KinematicBody2D
 # Physics consts
 const _FLOOR = Vector2(0,-1)
 const _G = 9.8
-const _F = 0.2
+const _F = 0.3
 
 # Physics logic
 var _canMove = false
 var _isAlive = false
-var speed = 250
+var speed = 350
 var velocity = Vector2()
 var last_velocity = velocity # Peach collision workaround
-var accel = Vector2(75, _G)
+var accel = Vector2(100, _G)
 var jump = -350
 var collision : KinematicCollision2D
 
@@ -40,7 +40,10 @@ func _ready():
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _physics_process(delta):
 	if _canMove:
-		velocity.y += accel.y
+		if velocity.y < 0:
+			velocity.y += accel.y
+		elif velocity.y >= 0:
+			velocity.y += accel.y * 1.5
 		if _isAlive:
 			if Input.is_action_pressed("ui_right"):
 				velocity.x = min(velocity.x+accel.x, speed)
@@ -57,10 +60,10 @@ func _physics_process(delta):
 				if Input.is_action_just_pressed("ui_jump"):
 					velocity.y = jump
 					$SFX_Jump.play()
-				velocity.x = lerp(velocity.x, 0, _F)
+				velocity = velocity.linear_interpolate(Vector2(0,velocity.y), _F)
 			else:
 				if !_invincible: $Ply_Sprite.animation = "jump"
-				velocity.x = lerp(velocity.x, 0, _F*0.25)
+				velocity.x = lerp(velocity.x, 0, _F)
 			
 			if $Ply_Sprite.animation == "damage" and $Ply_Sprite.frame == $Ply_Sprite.frames.get_frame_count("damage")-1:
 				_invincible = false
